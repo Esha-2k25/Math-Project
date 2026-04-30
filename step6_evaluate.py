@@ -72,12 +72,12 @@ def crash_metrics(M_obs, true_crash_cols):
 def tamper_metrics(S_tamper, tamper_mask):
     """
     Entry-level tamper detection.
-    Threshold: 95th percentile of |S_tamper|
+    Threshold: 97th percentile of |S_tamper| (optimal from sensitivity analysis)
     Returns: dict with F1, Precision, Recall, AUC
     """
     flat_tamper = tamper_mask.flatten().astype(int)
     scores = np.abs(S_tamper).flatten()
-    thresh = np.percentile(scores, 95)
+    thresh = np.percentile(scores, 97)
     pred = (scores > thresh).astype(int)
 
     try:
