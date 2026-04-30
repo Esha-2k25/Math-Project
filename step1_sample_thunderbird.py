@@ -1,4 +1,4 @@
-# step0_sample_thunderbird.py
+# step1_sample_thunderbird.py
 import numpy as np
 import pandas as pd
 import re
@@ -8,10 +8,10 @@ import os
 # ============================================================
 # CONFIGURATION
 # ============================================================
-RAW_LOG = "data/Thunderbird/Thunderbird.log"  # adjust path if needed
+RAW_LOG = "data/Thunderbird/Thunderbird.log"
 OUTPUT_DIR = "data"
-MAX_LINES = 5000000        # change this to 10000, 20000, 50000, etc.
-BLOCK_SIZE = 1000          # lines per block (adjust based on MAX_LINES)
+MAX_LINES = 5000000
+BLOCK_SIZE = 1000
 TOP_EVENTS = 30
 
 # ============================================================
@@ -27,14 +27,12 @@ with open(RAW_LOG, 'r', encoding='utf-8', errors='ignore') as f:
 print(f"Read {len(lines)} lines.")
 
 # ============================================================
-# 2. Extract event templates (same as before)
+# 2. Extract event templates
 # ============================================================
 def get_template(line):
     parts = line.strip().split()
     if not parts:
         return ""
-    # Try to find where the actual message starts (skip timestamps, node IDs)
-    # Thunderbird format example: "2005-06-03-15.42.50.363779 R02-M1-N0-C:J12-U11 RAS KERNEL INFO ..."
     start_idx = 0
     for i, p in enumerate(parts):
         if p in ('RAS', 'KERNEL', 'INFO', 'WARNING', 'ERROR', 'FATAL', 'Alert'):
@@ -52,7 +50,7 @@ for line in lines:
     tmpl = get_template(line)
     if tmpl:
         templates.append(tmpl)
-print(f"Extracted {len(templates)} non‑empty templates.")
+print(f"Extracted {len(templates)} non-empty templates.")
 
 # ============================================================
 # 3. Keep top K event types
@@ -88,7 +86,7 @@ for b in range(num_blocks):
 print(f"Raw matrix shape: {M_raw.shape}")
 sparsity = 100 * (M_raw == 0).mean()
 print(f"Sparsity: {sparsity:.1f}%")
-print(f"Mean non‑zero count per cell: {M_raw[M_raw > 0].mean():.2f}")
+print(f"Mean non-zero count per cell: {M_raw[M_raw > 0].mean():.2f}")
 
 # ============================================================
 # 5. Normalize and save
@@ -105,5 +103,5 @@ np.save(os.path.join(OUTPUT_DIR, 'col_mean.npy'), col_mean)
 np.save(os.path.join(OUTPUT_DIR, 'col_std.npy'), col_std)
 pd.Series(top_templates).to_csv(os.path.join(OUTPUT_DIR, 'event_types_sample.csv'), index=False)
 
-print("✅ Sample matrix saved as M_ground_truth_sample.npy")
-print("Now run step2_build_matrix_sample.py to check low‑rank structure.")
+print("Sample matrix saved as M_ground_truth.npy")
+print("Now run step2_check_sample.py to check low-rank structure.")

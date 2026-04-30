@@ -1,0 +1,49 @@
+
+╔══════════════════════════════════════════════════════════════════════════════╗
+║                    MCDD — QUICK REFERENCE FOR TEACHER                        ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
+PROBLEM:  System logs are incomplete due to crashes and attacks.
+          Standard methods assume random missingness (MCAR) — WRONG.
+
+METHOD:   MCDD = 4-Stage Pipeline
+
+  Stage 1: ADMM (masked RPCA) → L (low-rank) + S_tamper (sparse)
+  Stage 2: Crash detection     → identify crashed columns (>25% missing)
+  Stage 3: Subspace projection → learn from SAFE cols, project crashed cols
+  Stage 4: MNAR analysis       → learn crash thresholds theta (NOVEL OUTPUT)
+
+RESULTS:
+  ┌─────────────┬──────────┬──────────┬────────────┬──────────┬──────────┐
+  │ Condition   │ RPCA     │ MCDD     │ Improv.    │ Crash F1 │ Tamper F1│
+  ├─────────────┼──────────┼──────────┼────────────┼──────────┼──────────┤
+  │ A Random    │ 0.980    │ 0.978    │ 0% (base)  │    —     │    —     │
+  │ B Structured│ 0.868    │ 0.475    │ 45% BETTER │  1.000   │    —     │
+  │ C Adversarial│ 0.868   │ 0.590    │ 32% BETTER │  1.000   │  0.795   │
+  └─────────────┴──────────┴──────────┴────────────┴──────────┴──────────┘
+
+KEY NOVELTY: Theta (θ) = learned crash threshold per event type
+  • Safe columns:     θ ≈ 3.9  (need high event count to crash)
+  • Crashed columns:  θ ≈ 0.9  (crash at low event count)
+  • Separation:       3.0–4.6  (positive = physically meaningful)
+
+ADMM VERIFICATION:
+  ✓ L-update = SVT(M_fill - S + Y/rho, 1/rho)        [nuclear norm proximal]
+  ✓ S-update = soft_thresh(M_fill - L + Y/rho, λ/ρ)  [L1 norm proximal]
+  ✓ Y-update = Y + ρ*(M_fill - L - S)                [dual ascent]
+  ✓ Projection enforced by zeroing on missing entries
+
+WHAT IS NEW:
+  1. S_tamper detection in log forensics (no prior work)
+  2. Failure cause attribution (crash vs attack)
+  3. Three-output framework (L + crash_map + tamper_map)
+  4. Theta — learned physical crash threshold
+  5. Selective subspace projection conditioned on crash detection
+
+HONEST LIMITATIONS:
+  • Stage 1 ADMM = standard RPCA (not novel by itself)
+  • All improvement comes from Stage 3 (selective projection)
+  • Single dataset, synthetic injection
+  • Crash detection is threshold-based (empirical)
+
+═══════════════════════════════════════════════════════════════════════════════
